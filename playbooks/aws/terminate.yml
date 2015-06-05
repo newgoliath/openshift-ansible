@@ -9,7 +9,8 @@
 
 - name: Gather dynamic inventory variables for hosts to terminate
   hosts: oo_hosts_to_terminate
-  gather_facts: no
+  roles:
+  - rhel_unsubscribe
 
 - name: Terminate instances
   hosts: localhost

@@ -3,5 +3,8 @@
   vars:
     openshift_deployment_type: "{{ deployment_type }}"
   roles:
+  - role: rhel_subscribe
+    when: deployment_type == "enterprise" and
+          ansible_distribution == "RedHat"
   - openshift_repos
   - os_update_latest

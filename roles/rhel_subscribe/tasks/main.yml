@@ -1,0 +1,49 @@
+---
+# TODO: Enhance redhat_subscription module
+#       to make it able to attach to a pool
+#       to make it able to enable repositories
+
+- set_fact:
+    rhel_subscription_user: "{{ lookup('env', 'rhel_subscription_user') | default('None', True) }}"
+    rhel_subscription_pass: "{{ lookup('env', 'rhel_subscription_pass') | default('None', True) }}"
+
+- name: RedHat subscriptions
+  redhat_subscription:
+    username: "{{ rhel_subscription_user }}"
+    password: "{{ rhel_subscription_pass }}"
+    # pool: "^OpenShift Enterprise High Touch Beta$"
+    autosubscribe: yes
+  when: ansible_distribution == "RedHat" and
+        rhel_subscription_user != "None" and
+        rhel_subscription_pass != "None"
+
+- name: Get the OpenShift Enterprise High Touch Beta pool ID
+  shell: "subscription-manager list --available | awk -F : \
+         'BEGIN {s=0}
+          /Subscription Name: *OpenShift Enterprise High Touch Beta/ {s=1}
+          s==1 && /Pool ID:/ {print $2; s=2}'"
+  register: high_touch_beta_pool_id
+  when: deployment_type == "enterprise" and
+        ansible_distribution == "RedHat" and
+        rhel_subscription_user != "None" and
+        rhel_subscription_pass != "None"
+  changed_when: False
+
+- name: Enable OpenShift Enterprise High Touch Beta repos
+  command: "subscription-manager attach --pool={{ high_touch_beta_pool_id.stdout }}"
+  when: deployment_type == "enterprise" and
+        ansible_distribution == "RedHat" and
+        rhel_subscription_user != "None" and
+        rhel_subscription_pass != "None" and
+        high_touch_beta_pool_id.stdout != ''
+
+- name: Enable RHEL repositories
+  command: subscription-manager repos \
+               --enable="rhel-7-server-rpms" \
+               --enable="rhel-7-server-extras-rpms" \
+               --enable="rhel-7-server-optional-rpms" \
+               --enable="rhel-server-7-ose-beta-rpms"
+  when: deployment_type == "enterprise" and
+        ansible_distribution == "RedHat" and
+        rhel_subscription_user != "None" and
+        rhel_subscription_pass != "None"
