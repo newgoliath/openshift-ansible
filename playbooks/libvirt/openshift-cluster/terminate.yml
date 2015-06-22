@@ -20,7 +20,9 @@
   vars_files:
   - vars.yml
   roles:
-  - rhel_unsubscribe
+  - role: rhel_unsubscribe
+    when: deployment_type == "enterprise" and
+          ansible_distribution == "RedHat"
 
 - name: Terminate instance(s)
   hosts: localhost

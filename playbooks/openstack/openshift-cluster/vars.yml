@@ -33,7 +33,7 @@ deployment_vars:
     sudo: no
   enterprise:
     image:
-      name: "{{ opt_image_name | default('centos-70-raw') }}"
+      name: "{{ opt_image_name | default('rhel-guest-image-7.1-20150224.0.x86_64') }}"
       id:
     ssh_user: openshift
     sudo: yes
